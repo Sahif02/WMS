@@ -1,16 +1,18 @@
 package com.example.wms;
 
 public class User {
-    private String id;
+    private String userID;
     private String username;
     private String password;
+    private String role;
 
-    public String getId() {
-        return id;
+
+    public String getUserID() {
+        return userID;
     }
 
-    public void setId(String id) {
-        this.id = id;
+    public void setUserID(String userID) {
+        this.userID = userID;
     }
 
     public String getUsername() {
@@ -29,5 +31,12 @@ public class User {
         this.password = password;
     }
 
+    public String getRole() {
+        return role;
+    }
+
+    public void setRole(String role) {
+        this.role = role;
+    }
 }
 
