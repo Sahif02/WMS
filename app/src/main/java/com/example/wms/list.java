@@ -13,6 +13,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 
@@ -118,11 +119,17 @@ public class list extends Fragment implements ListAdapter.OnItemClickListener{
             public void onResponse(Call<List<Item>> call, Response<List<Item>> response) {
                 if (response.isSuccessful()) {
                     List<Item> listItems = response.body();
-                    // Populate the RecyclerView with history items
-                    listAdapter = new ListAdapter(listItems, list.this);
-                    recyclerView.setAdapter(listAdapter);
 
-                    locatebtn.setVisibility(View.VISIBLE);
+                    if(!listItems.isEmpty()) {
+                        // Populate the RecyclerView with history items
+                        listAdapter = new ListAdapter(listItems, list.this);
+                        recyclerView.setAdapter(listAdapter);
+
+                        locatebtn.setVisibility(View.VISIBLE);
+                    }
+                    else {
+                        Toast.makeText(requireContext(), "List Not Found", Toast.LENGTH_SHORT).show();
+                    }
                 } else {
                     // Handle error response
                 }

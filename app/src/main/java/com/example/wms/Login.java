@@ -85,11 +85,7 @@ public class Login extends AppCompatActivity {
 
                     if (enteredPassword.equals(storedPassword)) {
 
-                        if(storedRole.equals("admin")){
-
-                            Toast.makeText(Login.this, "Login Admin Successful", Toast.LENGTH_SHORT).show();
-
-                        }else{
+                        if(storedRole.equals("staff")){
 
                             // Passwords match, login successful
                             Toast.makeText(Login.this, "Login Successful", Toast.LENGTH_SHORT).show();
@@ -99,6 +95,9 @@ public class Login extends AppCompatActivity {
                             startActivity(intent);
                             finish(); // Close the LoginActivity
 
+                        }else{
+                            // Passwords match, login successful
+                            Toast.makeText(Login.this, "Invalid Credentials", Toast.LENGTH_SHORT).show();
                         }
 
                     } else {

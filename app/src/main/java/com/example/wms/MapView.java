@@ -56,10 +56,10 @@ public class MapView extends View {
                         paint.setColor(Color.RED);
                         break;
                     case Node.OPENED:
-                        paint.setColor(Color.BLUE);
+                        paint.setColor(Color.WHITE);
                         break;
                     case Node.CLOSED: // Finish
-                        paint.setColor(Color.CYAN);
+                        paint.setColor(Color.WHITE);
                         break;
                 }
 

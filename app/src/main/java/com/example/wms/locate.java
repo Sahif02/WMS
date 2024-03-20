@@ -5,7 +5,6 @@ import androidx.fragment.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.LinearLayout;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -22,6 +21,7 @@ public class locate extends Fragment {
     private int starty = -1;
     private int finishx = -1;
     private int finishy = -1;
+    private String[] itemLocations = {"WC-02-77", "WC-02-17", "WC-02-23"}; // Define item locations here
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -33,10 +33,7 @@ public class locate extends Fragment {
         canvasLayout.addView(mapView);
 
         generateMap(); // Replace with your actual map generation logic
-
-        if (startx > -1 && starty > -1 && finishx > -1 && finishy > -1) {
-            findPath();
-        }
+        findPath();
 
         return view;
     }
@@ -64,8 +61,6 @@ public class locate extends Fragment {
             map[cells+17 - 1][y].setType(Node.WALL); // Right border
         }
 
-
-
         // Set rack for item positions
         int[] rackPositions = {5, 6, 11, 12, 17, 18, 23, 24, 29, 30};
         int count = 1;
@@ -78,38 +73,42 @@ public class locate extends Fragment {
         starty = 0;
         map[startx][starty].setType(Node.START);
 
-
-
         int cellSize = 50;
         mapView.setWarehouse(map, cellSize);
     }
 
     private void setVerticalRack(int x, int count) {
-        // Retrieve item location from the database (example: "WC-01-11")
-        String itemLocation = "WC-02-77";
-
         for (int y = 4; y < cells - 12; y++) {
             map[x][y].setType(Node.WALL);
-            String prefix = getPrefix(itemLocation); // Get the appropriate prefix based on the item location
-            String nodeName = prefix + String.format("%02d", count);
-            if (itemLocation.equals(nodeName)) {
-                finishx = x;
-                finishy = y;
-                map[finishx][finishy].setType(Node.FINISH);
-            }
-            count++;
         }
 
         for (int y = 12; y < cells - 4; y++) {
             map[x][y].setType(Node.WALL);
-            String prefix = getPrefix(itemLocation); // Get the appropriate prefix based on the item location
-            String nodeName = prefix + String.format("%02d", count);
-            if (itemLocation.equals(nodeName)) {
-                finishx = x;
-                finishy = y;
-                map[finishx][finishy].setType(Node.FINISH);
+        }
+
+        for(String i : itemLocations){
+            int cc = count;
+            for (int y = 4; y < cells - 12; y++) {
+                String prefix = getPrefix(i); // Get the appropriate prefix based on the item location
+                String nodeName = prefix + String.format("%02d", cc);
+                if (i.equals(nodeName)) {
+                    finishx = x;
+                    finishy = y;
+                    map[finishx][finishy].setType(Node.FINISH);
+                }
+                cc++;
             }
-            count++;
+
+            for (int y = 12; y < cells - 4; y++) {
+                String prefix = getPrefix(i); // Get the appropriate prefix based on the item location
+                String nodeName = prefix + String.format("%02d", cc);
+                if (i.equals(nodeName)) {
+                    finishx = x;
+                    finishy = y;
+                    map[finishx][finishy].setType(Node.FINISH);
+                }
+                cc++;
+            }
         }
     }
 
@@ -118,50 +117,67 @@ public class locate extends Fragment {
         return itemLocation.substring(0, 6); // Adjust the substring length based on your naming convention
     }
 
-
     private void findPath() {
-        PriorityQueue<Node> openSet = new PriorityQueue<>((n1, n2) -> Double.compare(n1.fScore, n2.fScore));
-        Set<Node> closedSet = new TreeSet<>();
-
-        map[startx][starty].gScore = 0;
-        map[startx][starty].hScore = calculateHeuristic(map[startx][starty], map[finishx][finishy]);
-        map[startx][starty].fScore = map[startx][starty].gScore + map[startx][starty].hScore;
-
-        openSet.add(map[startx][starty]);
-        map[startx][starty].setType(Node.OPENED);
-
-        while (!openSet.isEmpty()) {
-            Node current = openSet.poll();
-            if (current.equals(map[finishx][finishy])) {
-                reconstructPath(current);
-                return;
+        for (String itemLocation : itemLocations) {
+            int finishX = -1;
+            int finishY = -1;
+            for (int x = 0; x < map.length; x++) {
+                for (int y = 0; y < map[x].length; y++) {
+                    if (map[x][y].getType() == Node.FINISH) {
+                        finishX = x;
+                        finishY = y;
+                        break;
+                    }
+                }
+                if (finishX != -1 && finishY != -1) {
+                    break;
+                }
             }
 
-            closedSet.add(current);
-            current.setType(Node.CLOSED);
+            if (finishX != -1 && finishY != -1) {
+                map[startx][starty].setType(Node.START);
 
-            for (Node neighbor : getNeighbors(current)) {
-                if (closedSet.contains(neighbor) || neighbor.getType() == Node.WALL) {
-                    continue;
-                }
+                PriorityQueue<Node> openSet = new PriorityQueue<>((n1, n2) -> Double.compare(n1.fScore, n2.fScore));
+                Set<Node> closedSet = new TreeSet<>();
 
-                double tentativeGScore = current.gScore + 1; // Assuming constant cost for moving between nodes
+                map[startx][starty].gScore = 0;
+                map[startx][starty].hScore = calculateHeuristic(map[startx][starty], map[finishX][finishY]);
+                map[startx][starty].fScore = map[startx][starty].gScore + map[startx][starty].hScore;
 
-                if (!openSet.contains(neighbor) || tentativeGScore < neighbor.gScore) {
-                    neighbor.parent = current;
-                    neighbor.gScore = tentativeGScore;
-                    neighbor.hScore = calculateHeuristic(neighbor, map[finishx][finishy]);
+                openSet.add(map[startx][starty]);
+                map[startx][starty].setType(Node.OPENED);
 
-                    neighbor.fScore = neighbor.gScore + neighbor.hScore;
-                    neighbor.setType(Node.OPENED);
+                while (!openSet.isEmpty()) {
+                    Node current = openSet.poll();
+                    if (current.equals(map[finishX][finishY])) {
+                        reconstructPath(current);
+                        break; // Move to the next item location
+                    }
 
-                    openSet.add(neighbor);
+                    closedSet.add(current);
+                    current.setType(Node.CLOSED);
+
+                    for (Node neighbor : getNeighbors(current)) {
+                        if (closedSet.contains(neighbor) || neighbor.getType() == Node.WALL) {
+                            continue;
+                        }
+
+                        double tentativeGScore = current.gScore + 1; // Assuming constant cost for moving between nodes
+
+                        if (!openSet.contains(neighbor) || tentativeGScore < neighbor.gScore) {
+                            neighbor.parent = current;
+                            neighbor.gScore = tentativeGScore;
+                            neighbor.hScore = calculateHeuristic(neighbor, map[finishX][finishY]);
+
+                            neighbor.fScore = neighbor.gScore + neighbor.hScore;
+                            neighbor.setType(Node.OPENED);
+
+                            openSet.add(neighbor);
+                        }
+                    }
                 }
             }
         }
-
-        // No path found
-        // Handle this case as needed (e.g., display message)
     }
 
     private List<Node> reconstructPath(Node node) {
