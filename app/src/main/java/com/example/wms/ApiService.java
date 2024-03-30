@@ -3,7 +3,9 @@ package com.example.wms;
 import java.util.List;
 
 import retrofit2.Call;
+import retrofit2.http.Body;
 import retrofit2.http.GET;
+import retrofit2.http.PUT;
 import retrofit2.http.Path;
 
 public interface ApiService {
@@ -16,5 +18,8 @@ public interface ApiService {
 
     @GET("api/lists/{listID}/items")
     Call<List<Item>> getItemByListID(@Path("listID") String listID);
+
+    @PUT("api/lists/{listID}/items/{itemID}")
+    Call<Void> updateStatusItem(@Path("listID") String listID, @Path("itemID") String itemID, @Body Item updatedStatusItem);
 }
 

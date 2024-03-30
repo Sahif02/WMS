@@ -2,16 +2,28 @@ package com.example.wms;
 
 import android.os.Bundle;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
+import android.widget.Toast;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.PriorityQueue;
 import java.util.Set;
 import java.util.TreeSet;
+
+import okhttp3.OkHttpClient;
+import okhttp3.logging.HttpLoggingInterceptor;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
 
 public class locate extends Fragment {
     private int cells = 20;
@@ -21,7 +33,10 @@ public class locate extends Fragment {
     private int starty = -1;
     private int finishx = -1;
     private int finishy = -1;
-    private String[] itemLocations = {"WC-02-77", "WC-02-17", "WC-02-23"}; // Define item locations here
+    private String[] itemLocations; // Define item locations here
+    private String list;
+    private ApiService apiService;
+    private ListAdapter listAdapter;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -29,11 +44,60 @@ public class locate extends Fragment {
 
         LinearLayout canvasLayout = view.findViewById(R.id.canvas_layout);
 
-        mapView = new MapView(requireContext(), null); // Pass null AttributeSet
-        canvasLayout.addView(mapView);
+        if (getArguments() != null) {
+            list = getArguments().getString("listID", "err");
 
-        generateMap(); // Replace with your actual map generation logic
-        findPath();
+            OkHttpClient.Builder httpClient = new OkHttpClient.Builder();
+            httpClient.addInterceptor(new HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY));
+
+            Retrofit retrofit = new Retrofit.Builder()
+                    .baseUrl("https://wms-api-u98x.onrender.com/")
+                    .addConverterFactory(GsonConverterFactory.create())
+                    .client(httpClient.build())
+                    .build();
+
+            // Create an instance of the ApiService interface
+            apiService = retrofit.create(ApiService.class);
+
+            Call<List<Item>> call = apiService.getItemByListID(list);
+
+            call.enqueue(new Callback<List<Item>>() {
+                @Override
+                public void onResponse(Call<List<Item>> call, Response<List<Item>> response) {
+                    if (response.isSuccessful()) {
+                        List<Item> listItems = response.body();
+
+                        if(!listItems.isEmpty()) {
+                            itemLocations = new String[listItems.size()]; // Initialize the array with the size of listItems
+
+                            // Iterate through the list of items
+                            for (int i = 0; i < listItems.size(); i++) {
+                                // Assuming each Item has a getLocation() method returning String location
+                                itemLocations[i] = listItems.get(i).getLocation();
+                            }
+
+                            mapView = new MapView(requireContext(), null); // Pass null AttributeSet
+                            canvasLayout.addView(mapView);
+
+                            generateMap();
+                            findPath();
+                        }
+                        else {
+                            Toast.makeText(requireContext(), "List Not Found", Toast.LENGTH_SHORT).show();
+                        }
+                    } else {
+                        // Handle error response
+                        Toast.makeText(requireContext(), "List Not Found", Toast.LENGTH_SHORT).show();
+                    }
+                }
+
+
+                @Override
+                public void onFailure(Call<List<Item>> call, Throwable t) {
+                    // Handle failure
+                }
+            });
+        }
 
         return view;
     }

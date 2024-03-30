@@ -8,11 +8,13 @@ import androidx.fragment.app.FragmentManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.material.bottomsheet.BottomSheetDialog;
@@ -46,21 +48,6 @@ public class list extends Fragment implements ListAdapter.OnItemClickListener{
             @Override
             public void onClick(View view) {
                 showBottomSheetDialog();
-            }
-        });
-
-        // Locate button
-        locatebtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Fragment locateFragment = new locate();
-
-                FragmentManager fragmentManager = getFragmentManager();
-
-                fragmentManager.beginTransaction()
-                        .replace(R.id.fragment_container, locateFragment)
-                        .addToBackStack(null)
-                        .commit();
             }
         });
 
@@ -126,12 +113,31 @@ public class list extends Fragment implements ListAdapter.OnItemClickListener{
                         recyclerView.setAdapter(listAdapter);
 
                         locatebtn.setVisibility(View.VISIBLE);
+
+                        locatebtn.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                Fragment locateFragment = new locate();
+
+                                FragmentManager fragmentManager = getFragmentManager();
+                                Bundle bundle = new Bundle();
+
+                                bundle.putString("listID", listId);
+                                locateFragment.setArguments(bundle);
+
+                                fragmentManager.beginTransaction()
+                                        .replace(R.id.fragment_container, locateFragment)
+                                        .addToBackStack(null)
+                                        .commit();
+                            }
+                        });
                     }
                     else {
                         Toast.makeText(requireContext(), "List Not Found", Toast.LENGTH_SHORT).show();
                     }
                 } else {
                     // Handle error response
+                    Toast.makeText(requireContext(), "List Not Found", Toast.LENGTH_SHORT).show();
                 }
             }
 
@@ -142,8 +148,102 @@ public class list extends Fragment implements ListAdapter.OnItemClickListener{
         });
     }
 
+    private void showBottomSheet(Item listItem) {
+        // Create a BottomSheetDialog and set the layout
+        BottomSheetDialog bottomSheetDialog = new BottomSheetDialog(requireContext());
+        View bottomSheetView = LayoutInflater.from(requireContext()).inflate(R.layout.fragment_item_details_bottom_sheet, null);
+        bottomSheetDialog.setContentView(bottomSheetView);
+
+        // Get TextViews and Buttons from the layout
+        TextView itemname = bottomSheetView.findViewById(R.id.itemName);
+        TextView quantity = bottomSheetView.findViewById(R.id.itemQuantity);
+        TextView location = bottomSheetView.findViewById(R.id.itemLocation);
+        EditText itemId = bottomSheetView.findViewById(R.id.itemID);
+        Button updateButton = bottomSheetView.findViewById(R.id.updateButton);
+        Button cancelButton = bottomSheetView.findViewById(R.id.cancelButton);
+
+        // Set text for TextViews
+        itemname.setText("Item Name: " + listItem.getItemName());
+        quantity.setText("Quantity: " + listItem.getQuantity());
+        location.setText("Location: " + listItem.getLocation());
+
+        // Set click listener for updateButton
+        updateButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Retrieve the entered item ID from the EditText
+                String enteredItemId = itemId.getText().toString();
+                String status = "completed";
+
+                // Check if the entered item ID matches the item's actual ID
+                if (enteredItemId.equals(listItem.getItemID())) {
+
+                    Item updatedItem = new Item();
+                    updatedItem.setItemID(listItem.getItemID());
+                    updatedItem.setStatus(status);
+
+                    Call<Void> call = apiService.updateStatusItem(listItem.getListID(), listItem.getItemID(), updatedItem);
+
+                    call.enqueue(new Callback<Void>() {
+                        @Override
+                        public void onResponse(Call<Void> call, Response<Void> response) {
+                            if (response.isSuccessful()) {
+                                // Handle successful update, for example, show a success message
+                                Toast.makeText(requireContext(), "Item updated successfully", Toast.LENGTH_SHORT).show();
+
+                                bottomSheetDialog.dismiss(); // Close the update activity
+
+                                checkListIdAndFetchItems(listItem.getListID());
+                            } else {
+                                // Log the error details
+                                Log.e("UpdateItem", "Failed to update item. Response code: " + response.code() + ", Message: " + response.message());
+
+                                // Handle error response
+                                Toast.makeText(requireContext(), "Failed to update item", Toast.LENGTH_SHORT).show();
+                            }
+                        }
+
+                        @Override
+                        public void onFailure(Call<Void> call, Throwable t) {
+                            // Log the failure details
+                            Log.e("UpdateReservation", "Network error", t);
+
+                            // Handle failure
+                            Toast.makeText(requireContext(), "Network error", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+
+                } else {
+                    // If IDs don't match, display a toast indicating incorrect ID
+                    Toast.makeText(requireContext(), "Incorrect Item ID", Toast.LENGTH_SHORT).show();
+                }
+
+                bottomSheetDialog.dismiss(); // Dismiss the bottom sheet
+            }
+        });
+
+
+        // Set click listener for cancelButton
+        cancelButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Dismiss the bottom sheet
+                bottomSheetDialog.dismiss();
+            }
+        });
+
+        // Show the bottom sheet
+        bottomSheetDialog.show();
+    }
+
     @Override
     public void onItemClick(Item listItem) {
-        showBottomSheetDialog();
+        if ("completed".equals(listItem.getStatus())) {
+            Toast.makeText(requireContext(), "Completed", Toast.LENGTH_SHORT).show();
+        } else {
+            // Item status is not "completed", show a message indicating it cannot be updated
+            showBottomSheet(listItem);
+        }
     }
+
 }
