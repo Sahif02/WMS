@@ -1,6 +1,8 @@
 package com.example.wms;
 
 import android.content.Intent;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -23,7 +25,6 @@ public class Login extends AppCompatActivity {
     private EditText usernameEditText, passwordEditText;
     private Button loginButton;
     private TextView forgotPasswordTextView;
-
     private ApiService apiService;
 
     @Override
@@ -90,9 +91,11 @@ public class Login extends AppCompatActivity {
                             // Passwords match, login successful
                             Toast.makeText(Login.this, "Login Successful", Toast.LENGTH_SHORT).show();
 
-                            // Redirect to MainActivity
+
                             Intent intent = new Intent(Login.this, MainActivity.class);
+                            intent.putExtra("userDetails", user);
                             startActivity(intent);
+
                             finish(); // Close the LoginActivity
 
                         }else{

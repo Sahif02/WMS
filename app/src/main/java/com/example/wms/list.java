@@ -35,6 +35,7 @@ public class list extends Fragment implements ListAdapter.OnItemClickListener{
     private ApiService apiService;
     private ListAdapter listAdapter;
     private Button locatebtn; // Declare locatebtn as a member variable
+    private User userDetails;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -44,12 +45,25 @@ public class list extends Fragment implements ListAdapter.OnItemClickListener{
         locatebtn.setVisibility(View.GONE); // Initially hide locatebtn
 
         Button addButton = view.findViewById(R.id.addListButton);
-        addButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                showBottomSheetDialog();
-            }
-        });
+
+        if (getArguments() != null) {
+            String listId = getArguments().getString("listID", "err");
+            addButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    showBottomSheetDialog();
+                }
+            });
+
+            checkListIdAndFetchItems(listId);
+        }else{
+            addButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    showBottomSheetDialog();
+                }
+            });
+        }
 
         recyclerView = view.findViewById(R.id.listItemsRecyclerView);
         recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
@@ -178,9 +192,12 @@ public class list extends Fragment implements ListAdapter.OnItemClickListener{
                 // Check if the entered item ID matches the item's actual ID
                 if (enteredItemId.equals(listItem.getItemID())) {
 
+                    userDetails = (User) getArguments().getSerializable("userDetails");
+
                     Item updatedItem = new Item();
                     updatedItem.setItemID(listItem.getItemID());
                     updatedItem.setStatus(status);
+                    updatedItem.setUpdatedBy(userDetails.getUserID());
 
                     Call<Void> call = apiService.updateStatusItem(listItem.getListID(), listItem.getItemID(), updatedItem);
 

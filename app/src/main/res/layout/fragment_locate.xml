@@ -13,9 +13,18 @@
         android:orientation="horizontal"
         android:gravity="center">
 
+        <Button
+            android:id="@+id/backbtn"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_marginStart="10dp"
+            android:background="@drawable/arrowback"/>
+
         <TextView
-            android:layout_width="match_parent"
+            android:id="@+id/warehouseLayout"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_weight="1"
             android:text="Route (WC)"
             android:textSize="24sp"
             android:gravity="center"

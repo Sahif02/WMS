@@ -7,10 +7,13 @@ import androidx.fragment.app.FragmentManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.PriorityQueue;
@@ -43,6 +46,26 @@ public class locate extends Fragment {
         View view = inflater.inflate(R.layout.fragment_locate, container, false);
 
         LinearLayout canvasLayout = view.findViewById(R.id.canvas_layout);
+
+        Button backbtn = view.findViewById(R.id.backbtn);
+
+        backbtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Fragment listFragment = new list();
+
+                FragmentManager fragmentManager = getFragmentManager();
+                Bundle bundle = new Bundle();
+
+                bundle.putString("listID", list);
+                listFragment.setArguments(bundle);
+
+                fragmentManager.beginTransaction()
+                        .replace(R.id.fragment_container, listFragment)
+                        .addToBackStack(null)
+                        .commit();
+            }
+        });
 
         if (getArguments() != null) {
             list = getArguments().getString("listID", "err");
@@ -78,6 +101,12 @@ public class locate extends Fragment {
 
                             mapView = new MapView(requireContext(), null); // Pass null AttributeSet
                             canvasLayout.addView(mapView);
+
+                            for(String i : itemLocations){
+                                String lblprefix = getPrefixForLabel(i);
+                                TextView label = view.findViewById(R.id.warehouseLayout);
+                                label.setText("Route (" + getPrefixForLabel(lblprefix) + ")");
+                            }
 
                             generateMap();
                             findPath();
@@ -179,6 +208,11 @@ public class locate extends Fragment {
     private String getPrefix(String itemLocation) {
         // Extract the prefix from the item location (e.g., "WC-01-", "WC-02-", etc.)
         return itemLocation.substring(0, 6); // Adjust the substring length based on your naming convention
+    }
+
+    private String getPrefixForLabel(String itemLocation) {
+        // Extract the prefix from the item location (e.g., "WC-01-", "WC-02-", etc.)
+        return itemLocation.substring(0, 2); // Adjust the substring length based on your naming convention
     }
 
     private void findPath() {

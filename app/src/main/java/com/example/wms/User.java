@@ -1,6 +1,8 @@
 package com.example.wms;
 
-public class User {
+import java.io.Serializable;
+
+public class User implements Serializable {
     private String userID;
     private String username;
     private String password;

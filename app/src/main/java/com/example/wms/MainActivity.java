@@ -38,15 +38,22 @@ public class MainActivity extends AppCompatActivity {
     private ApiService apiService;
     private RecyclerView recyclerView;
     private ListAdapter listAdapter;
+    private User userDetails;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        list fragment = new list();
-        Bundle bundle = new Bundle();
-        loadFragment(fragment, true);
+        if (getIntent() != null && getIntent().hasExtra("userDetails")) {
+            userDetails = (User) getIntent().getSerializableExtra("userDetails");
+
+            list fragment = new list();
+            Bundle bundle = new Bundle();
+            bundle.putSerializable("userDetails", userDetails);
+            fragment.setArguments(bundle);
+            loadFragment(fragment, true);
+        }
 
     }
 
