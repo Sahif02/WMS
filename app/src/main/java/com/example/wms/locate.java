@@ -36,7 +36,8 @@ public class locate extends Fragment {
     private int starty = -1;
     private int finishx = -1;
     private int finishy = -1;
-    private String[] itemLocations; // Define item locations here
+    private String[] itemLocations;
+    private String[] itemStatus;
     private String list;
     private ApiService apiService;
     private ListAdapter listAdapter;
@@ -286,7 +287,7 @@ public class locate extends Fragment {
         }
         Collections.reverse(path);
 
-        // Update map to visualize the path (example)
+        // Update map to visualize the path
         for (Node n : path) {
             map[n.getX()][n.getY()].setType(Node.FINISH); // Change type to represent path (adjust color in WarehouseMapView)
         }
@@ -327,6 +328,7 @@ public class locate extends Fragment {
         public static final int FINISH = 3;
         public static final int OPENED = 4;
         public static final int CLOSED = 5;
+        public static final int PATH = 6;
 
         private int x;
         private int y;

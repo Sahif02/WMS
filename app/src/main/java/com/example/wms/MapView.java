@@ -61,6 +61,9 @@ public class MapView extends View {
                     case Node.CLOSED: // Finish
                         paint.setColor(Color.WHITE);
                         break;
+                    case  Node.PATH:
+                        paint.setColor(Color.GREEN);
+                        break;
                 }
 
                 canvas.drawRect(left, top, right, bottom, paint);

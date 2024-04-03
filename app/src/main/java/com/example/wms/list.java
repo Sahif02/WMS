@@ -56,6 +56,11 @@ public class list extends Fragment implements ListAdapter.OnItemClickListener{
             });
 
             checkListIdAndFetchItems(listId);
+
+            recyclerView = view.findViewById(R.id.listItemsRecyclerView);
+            recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
+
+            return view;
         }else{
             addButton.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -63,12 +68,12 @@ public class list extends Fragment implements ListAdapter.OnItemClickListener{
                     showBottomSheetDialog();
                 }
             });
+
+            recyclerView = view.findViewById(R.id.listItemsRecyclerView);
+            recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
+
+            return view;
         }
-
-        recyclerView = view.findViewById(R.id.listItemsRecyclerView);
-        recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
-
-        return view;
     }
 
     private void showBottomSheetDialog() {
