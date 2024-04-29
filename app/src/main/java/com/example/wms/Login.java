@@ -1,6 +1,8 @@
 package com.example.wms;
 
 import android.content.Intent;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -23,7 +25,6 @@ public class Login extends AppCompatActivity {
     private EditText usernameEditText, passwordEditText;
     private Button loginButton;
     private TextView forgotPasswordTextView;
-
     private ApiService apiService;
 
     @Override
@@ -41,7 +42,7 @@ public class Login extends AppCompatActivity {
         httpClient.addInterceptor(new HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY));
 
         Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl("http://10.0.2.2:3000/") // Use 10.0.2.2 for emulator
+                .baseUrl("https://wms-api-u98x.onrender.com/")
                 .addConverterFactory(GsonConverterFactory.create())
                 .client(httpClient.build())
                 .build();
@@ -78,18 +79,29 @@ public class Login extends AppCompatActivity {
                 if (response.isSuccessful() && response.body() != null) {
                     User user = response.body();
                     String storedPassword = user.getPassword();
+                    String storedRole = user.getRole();
 
                     // Check entered password against stored password
                     String enteredPassword = passwordEditText.getText().toString();
 
                     if (enteredPassword.equals(storedPassword)) {
-                        // Passwords match, login successful
-                        Toast.makeText(Login.this, "Login Successful", Toast.LENGTH_SHORT).show();
 
-                        // Redirect to MainActivity
-                        Intent intent = new Intent(Login.this, MainActivity.class);
-                        startActivity(intent);
-                        finish(); // Close the LoginActivity
+                        if(storedRole.equals("staff")){
+
+                            // Passwords match, login successful
+                            Toast.makeText(Login.this, "Login Successful", Toast.LENGTH_SHORT).show();
+
+
+                            Intent intent = new Intent(Login.this, MainActivity.class);
+                            intent.putExtra("userDetails", user);
+                            startActivity(intent);
+
+                            finish(); // Close the LoginActivity
+
+                        }else{
+                            // Passwords match, login successful
+                            Toast.makeText(Login.this, "Invalid Credentials", Toast.LENGTH_SHORT).show();
+                        }
 
                     } else {
                         // Passwords do not match, login failed
