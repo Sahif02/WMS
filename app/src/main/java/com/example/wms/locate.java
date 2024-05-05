@@ -220,7 +220,7 @@ public class locate extends Fragment {
         for (String itemLocation : itemLocations) {
             int finishX = -1;
             int finishY = -1;
-            for  (int x = 0; x < map.length; x++) {
+            for (int x = 0; x < map.length; x++) {
                 for (int y = 0; y < map[x].length; y++) {
                     if (map[x][y].getType() == Node.FINISH) {
                         finishX = x;
